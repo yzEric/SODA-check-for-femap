@@ -1,4 +1,6 @@
 # SODA
+_Sum Of Deviation Angles_
+
 ```
 The MIT License (MIT)
 
@@ -22,3 +24,12 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 ```
+
+**Element quality check: SODA criteria**
+
+SODA is based on the sum of deviation angles. For quadrilateral faces, the deviation is based on a 90 degree angle. For triangular faces, the deviation is based on a 60 degree angle.
+
+Soda_Quad = abs(90-α1) + abs(90-α2) + abs(90-α3) + abs(90-α4)
+
+Soda_Tria = abs(60-α1) + abs(60-α2) + abs(60-α3)
+
