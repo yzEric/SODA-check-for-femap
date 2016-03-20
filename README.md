@@ -25,11 +25,23 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 ```
 
-**Element quality check: SODA criteria**
+###Element quality check: SODA criteria
 
-SODA is based on the sum of deviation angles. For quadrilateral faces, the deviation is based on a 90 degree angle. For triangular faces, the deviation is based on a 60 degree angle.
+SODA is based on the sum of deviation angles. 
+- - - -
+__For quadrilateral faces, the deviation is based on a 90 degree angle.__
+
+![Quad](https://raw.githubusercontent.com/yzEric/SODA/master/Quad.png "Soda Tria")
 
 Soda_Quad = abs(90-α1) + abs(90-α2) + abs(90-α3) + abs(90-α4)
 
+- - - -
+__For triangular faces, the deviation is based on a 60 degree angle.__
+
+![Tria](https://raw.githubusercontent.com/yzEric/SODA/master/Tria.png "Soda Tria")
+
 Soda_Tria = abs(60-α1) + abs(60-α2) + abs(60-α3)
+
+- - - -
+
 
