@@ -31,6 +31,7 @@ All implementations give the same results but with very differents execution spe
 
 This scripts and programs do a mesh distortion analysis.
 
+- - - -
 
 ## Benchmark results
 
@@ -38,62 +39,128 @@ This scripts and programs do a mesh distortion analysis.
 
 The table below shows the results obtained for the same model on the same PC.
 
-| Version                 | code length  | Duration  | Speed factor  
-| ----------------------- | -----------: | --------: | ----------- 
-| WinWrap full Femap      |  70 lines    |    300s   |  x1
-| WinWrap max optim.      | 125 lines    |     20s   |  x15
-| VB single thread        | 110 lines    |     11s   |  x27
-| VB multi threads (4CPU) | 140 lines    |      5s   |  x75
+| Version              | code length* | Duration  | Speed factor  
+| -------------------- | -----------: | --------: | ------------- 
+| WinWrap full Femap   |   70 lines   |    300s   |  x1
+| WinWrap max optim.   |  125 lines   |     20s   |  x15
+| VB single thread     |  110 lines   |     11s   |  x27
+| VB multi threads     |  140 lines   |      5s   |  x75 _4-CPUs_
 
+_*Code length only include code for mesh analysis, not selection of element and results storage_
 
-The results show that it is possible to improve performance by reducing and optimizing calls to foo functions.
+The results show that it is possible to improve performance by reducing and optimizing calls to Femap functions.
 
-The versions compiled in VB provides a performance increase but require few modifications of the types of variables, the gain becomes extremely important multi threads implementation.
+The versions compiled in VB provides a performance increase but require few modifications of the types of variables, the gain is extremely important with multi threads implementation.
 
 
 - - - -
+
 ## Element quality check: SODA criteria
 
 SODA distortion criteria is based on the sum of deviation angles. 
 
 - For quadrilateral faces, the deviation is based on a 90 degree angle.
-
-![Quad](https://raw.githubusercontent.com/yzEric/SODA/master/Quad.png "Soda Tria")
-
-    Soda_Quad = abs(90-α1) + abs(90-α2) + abs(90-α3) + abs(90-α4)
-
-
 - For triangular faces, the deviation is based on a 60 degree angle.
 
-![Tria](https://raw.githubusercontent.com/yzEric/SODA/master/Tria.png "Soda Tria")
 
-    Soda_Tria = abs(60-α1) + abs(60-α2) + abs(60-α3)
 
-- - - -
+| Shape     | Formula
+| :-------: | ---------------------------------------------------------------- |
+| ![Quad]   |   Soda_Quad = abs(90-α1) + abs(90-α2) + abs(90-α3) + abs(90-α4)
+| ![Tria]   |   Soda_Tria = abs(60-α1) + abs(60-α2) + abs(60-α3)
+
+
+[Quad]: https://raw.githubusercontent.com/yzEric/SODA/master/Quad.png "Soda Tria"
+[Tria]: https://raw.githubusercontent.com/yzEric/SODA/master/Tria.png "Soda Tria"
+
+
 
 ## Implementations
-### - WinWrap Full Femap -
-This script is as short and as simple as possible.
 
-The only optimisation is an intermediate function to reduce the number calls of feAppStatusUpdate
+### - WinWrap: full Femap -
+This script use only integrated funtions of Femap, it is short and easy to write but it is very slow.
 
 
-### - Win Wrap optimized -
+This script produce a lot of calls of Femap API functions
 
+```
+  For each element 
+      Get element data-> elem.get(ID)
+      For each corner
+         mesure corner angle -> model.feMeasureAngleBetweenNodes
+      Next
+  Next 
+  
+  Number of calls:
+     - Femap API = number of elements * 4 
+```
+
+
+### - Win Wrap: optimized -
+This script use few tricks to speed up the previous version.
+
+Few changes in code permit significantly reduce the number of calls of Femap API.
+
+
+```
+  Get all nodes on elements      -> nodeSet.AddSetRule( elemSet.ID , FGD_NODE_ONELEM )
+  Get coordinates of these nodes -> Node.GetCoordArray
+  Get data of all elements       -> Elem.GetAllArray
+  
+  For each element 
+      For each corner
+         mesure corner angle     -> non-femap function
+      Next
+  Next 
+  
+  Number of calls:
+     - Femap API = 3
+     - User function = number of elements * 4  
+```
 
 
 ### - Visual Basic: single thread -
+Code is pretty the same as the previous version.
 
+Minor changes have been made to adapt the code in vb, mainly the adaptation of the type of variables.
+
+```
+  Get all nodes on elements      -> nodeSet.AddSetRule( elemSet.ID , FGD_NODE_ONELEM )
+  Get coordinates of these nodes -> Node.GetCoordArray
+  Get data of all elements       -> Elem.GetAllArray
+  
+  For each element 
+      For each corner
+         mesure corner angle     -> non-femap function
+      Next
+  Next 
+  
+  Number of calls:
+     - Femap API = 3
+     - User function = number of elements * 4   
+```
 
 
 ### - Visual Basic: multi threads -
+Code is pretty the same as the single thread version.
+
+After obtained the data from the model, multiple threads are used to analyze data.
 
 
-
-
-
-
-
-
-
-
+```
+  Get all nodes on elements      -> nodeSet.AddSetRule( elemSet.ID , FGD_NODE_ONELEM )
+  Get coordinates of these nodes -> Node.GetCoordArray
+  Get data of all elements       -> Elem.GetAllArray
+  
+  # Dispatch on threads
+    For each element 
+        For each corner
+           mesure corner angle     -> non-femap function
+        Next
+    Next 
+  #
+  
+  Number of calls:
+     - Femap API = 3
+     - User function = number of elements * 4  
+```
